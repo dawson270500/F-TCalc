@@ -2,6 +2,7 @@
 !   A terminal driven calculator written in fortran
 ! Author: Bailey Dawson
 ! Date: 02.03.2023
+! Compile Command: gfortran calc.f90 -o calc.exe -L C:\TDM-GCC-64\bin\libgfortran_64-5.dll
 
 ! Module from https://stackoverflow.com/a/24077338
 module str2int_mod
@@ -33,14 +34,15 @@ program calc
   if (num_args == 1) then 
     call get_command_argument(1,args)
     if (args == '-h') then ! Help text
-      print *, 'F-TCalc - Version 0.1'
+      print *, 'F-TCalc - Version 0.2'
       print *, ' A terminal based calculator, written in fortran'
       print *, ' Arugments can be at most 16 characters long'
+      print *, ' Can only take integers'
       print *, ' Arguments: '
       print *, '  calc <int-1> [<oper> <int-2>]'
-      print *, '  int-1 : First number in operation, or -h for help'
-      print *, '  oper : Operation to run. Valid operations are "+", "-", "/" and "x"'
-      print *, '  int-2 : Second number in operation'
+      print *, '  int-1 : First integer in operation, or -h for help'
+      print *, '  oper : Operation to run. Valid operations are "+", "-", "/", "xx" and "x"'
+      print *, '  int-2 : Second integer in operation'
       print *, ' Returns: '
       print *, '  -1 : Incorrect number of arguments'
       print *, '  -2 : Invalid Arguments'
@@ -54,7 +56,7 @@ program calc
 
   ! Grab first arg and convert to int, if it is a number
   call get_command_argument(1,args)
-  if (isNum(args)) then 
+  if (isNum(trim(args))) then 
     call str2int(args,IntFirstNum,stat)
   else
     print *, 'Invalid Arguments'
@@ -63,7 +65,7 @@ program calc
   
   ! Grab third arg and convert to int, if it is a number
   call get_command_argument(3,args)
-  if (isNum(args)) then 
+  if (isNum(trim(args))) then 
     call str2int(args,IntSecondNum,stat)
   else
     print *, 'Invalid Arguments'
@@ -82,6 +84,8 @@ program calc
       result = IntFirstNum / IntSecondNum
     case ('x')
       result = IntFirstNum * IntSecondNum
+    case ('xx')
+      result = IntFirstNum ** IntSecondNum
 
     ! Invalid goes here
     case default
@@ -101,18 +105,14 @@ end program calc
   !  .true. : string is a number
   !  .false. : string is not a number
   function isNum(s) result(ret)
-    character(len=12), intent(in) :: s
+    character(len=*), intent(in) :: s
     logical :: ret
     ret = .true.
     do i = 1, len(s)
       ! Check for all valid chars
-      if (ret .eqv. .false.) then
-        exit
-      endif
       select case (s(i:i))
-
         ! Valid chars
-        case (' ') ! We ignore spaces as the str 2 int function can handle them
+        case ('-')
         case ('0') 
         case ('1')
         case ('2') 
@@ -129,6 +129,10 @@ end program calc
           ret = .false.
 
       end select
+
+      if (ret .eqv. .false.) then
+        exit
+      endif
     end do
 
 end function isNum
